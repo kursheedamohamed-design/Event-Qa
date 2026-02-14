@@ -1,0 +1,7 @@
+{
+  "name": "Qatar Party Hub",
+  "description": "A premium celebration network in Qatar connecting users with top event partners, home bakers, and venues for unforgettable parties.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

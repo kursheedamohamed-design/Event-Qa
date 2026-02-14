@@ -1,0 +1,23 @@
+
+{
+  "name": "Qatar Party Hub",
+  "short_name": "Party Hub",
+  "description": "Qatar's Premier Celebration Network",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1530103043960-ef38714abb15?q=80&w=192&h=192&auto=format&fit=crop",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1530103043960-ef38714abb15?q=80&w=512&h=512&auto=format&fit=crop",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
