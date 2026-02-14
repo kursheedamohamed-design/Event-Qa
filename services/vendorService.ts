@@ -49,7 +49,8 @@ export const saveVendor = async (vendor: Omit<Vendor, 'id' | 'status' | 'created
     verified: false,
     featured: false,
     whatsappClicks: 0,
-    profileViews: 0
+    profileViews: 0,
+    isWhatsAppVerified: true // Default to true
   };
 
   if (supabase) {

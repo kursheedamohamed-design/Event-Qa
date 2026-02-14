@@ -1,4 +1,5 @@
 
+
 export enum Category {
   HOME_BAKER = 'Baker',
   PHOTOGRAPHER = 'Photographer',
@@ -15,11 +16,14 @@ export enum PriceType {
   SESSION = 'per Session'
 }
 
-export enum VendorStatus {
+export enum PartnerStatus {
   PENDING = 'Pending',
   APPROVED = 'Approved',
   HIDDEN = 'Hidden'
 }
+
+// Fix: Export alias for PartnerStatus to resolve VendorStatus import errors
+export { PartnerStatus as VendorStatus };
 
 export interface MenuItem {
   name: string;
@@ -37,20 +41,22 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
-  favorites: string[]; // Array of vendor IDs
+  favorites: string[]; // Array of partner IDs
+  isPartner?: boolean;
 }
 
 export interface Review {
   id: string;
-  vendorId: string;
+  partnerId: string;
   authorName: string;
   rating: number;
   comment: string;
   createdAt: number;
 }
 
-export interface Vendor {
+export interface Partner {
   id: string;
+  ownerId: string; // Linking to the User ID who created it
   name: string;
   category: Category;
   description: string;
@@ -72,7 +78,7 @@ export interface Vendor {
   images: string[];
   profilePhoto?: string;
   coverPhoto?: string;
-  status: VendorStatus;
+  status: PartnerStatus;
   createdAt: number;
   featured?: boolean;
   verified?: boolean;
@@ -80,8 +86,5 @@ export interface Vendor {
   profileViews?: number;
 }
 
-export interface AppState {
-  vendors: Vendor[];
-  isAdmin: boolean;
-  currentUser: User | null;
-}
+// Fix: Define Vendor as an alias for Partner to resolve Vendor type import errors
+export type Vendor = Partner;

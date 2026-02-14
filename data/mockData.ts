@@ -4,6 +4,8 @@ import { Vendor, Category, PriceType, VendorStatus } from '../types';
 export const MOCK_VENDORS: Vendor[] = [
   {
     id: '1',
+    // Added ownerId to satisfy Partner interface
+    ownerId: 'system',
     name: 'Sweet Crumbs by Aisha',
     category: Category.HOME_BAKER,
     description: 'Bespoke cakes and dessert tables for magical celebrations. We specialize in custom-themed cakes, hand-crafted with premium organic ingredients for weddings, birthdays, and corporate events.',
@@ -34,6 +36,8 @@ export const MOCK_VENDORS: Vendor[] = [
   },
   {
     id: '2',
+    // Added ownerId to satisfy Partner interface
+    ownerId: 'system',
     name: 'Wonderland Event Venue',
     category: Category.VENUE,
     description: 'The ultimate indoor playground and party venue. All-inclusive packages with private party rooms, professional hosting, and premium amenities for unforgettable gatherings.',
@@ -60,6 +64,8 @@ export const MOCK_VENDORS: Vendor[] = [
   },
   {
     id: '5',
+    // Added ownerId to satisfy Partner interface
+    ownerId: 'system',
     name: 'Capturing Smiles Photography',
     category: Category.PHOTOGRAPHER,
     description: 'Professional event photography specializing in family and social gatherings. We capture the candid moments and joyful smiles that last a lifetime.',

@@ -50,25 +50,20 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, showFeaturedBadge }) =>
   return (
     <>
       <Link 
-        to={`/vendor/${vendor.id}`}
+        to={`/partner/${vendor.id}`}
         className={`group relative bg-white rounded-[2.5rem] overflow-hidden border ${isFeatured ? 'border-amber-200' : 'border-gray-100'} hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-500 flex flex-col h-full shadow-sm`}
       >
-        {/* Top Image Section */}
         <div className="relative aspect-[16/11] overflow-hidden">
           <img 
             src={vendor.images[0] || 'https://picsum.photos/seed/placeholder/800/600'} 
             alt={vendor.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
-          
-          {/* Top Left: Category Badge */}
           <div className="absolute top-4 left-4">
             <div className="px-3.5 py-1.5 bg-white/95 rounded-xl text-[10px] font-black uppercase tracking-wider text-indigo-600 shadow-sm border border-indigo-50">
               {t(`categories.${vendor.category}`)}
             </div>
           </div>
-
-          {/* Top Right: Heart & Featured */}
           <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
             <button 
               onClick={handleFavorite}
@@ -76,23 +71,10 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, showFeaturedBadge }) =>
             >
               <Heart size={20} fill={isFavorited ? "currentColor" : "none"} strokeWidth={2.5} />
             </button>
-
-            {isFeatured && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">
-                <Sparkles className="w-3 h-3 fill-current" />
-                Featured
-              </div>
-            )}
-          </div>
-
-          {/* Bottom Right Overlay: Starting From (Optional overlay style) */}
-          <div className="absolute bottom-3 right-4 text-right">
-             <span className="text-[9px] font-black text-white/90 uppercase tracking-tighter drop-shadow-sm">STARTING FROM</span>
           </div>
         </div>
         
         <div className="px-5 pb-5 pt-0 flex-grow flex flex-col relative">
-          {/* Profile Photo Overlap */}
           <div className="relative -mt-10 mb-4 flex items-end justify-between">
             <div className="w-16 h-16 rounded-2xl border-4 border-white bg-white shadow-xl overflow-hidden flex-shrink-0 ml-1">
               {vendor.profilePhoto ? (
@@ -103,16 +85,12 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, showFeaturedBadge }) =>
                 </div>
               )}
             </div>
-            
-            {/* Price Badge Placement matching image */}
             <div className="flex flex-col items-end">
                <span className="flex items-center gap-1 text-indigo-600 font-black text-xs bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-100 shadow-sm">
                  QAR {cleanPrice(vendor.price)}
                </span>
             </div>
           </div>
-
-          {/* Vendor Name & Verification */}
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-black text-[1.2rem] leading-tight text-indigo-600 group-hover:text-indigo-700 transition-colors tracking-tight">
               {vendor.name}
@@ -121,19 +99,13 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, showFeaturedBadge }) =>
               <CheckCircle2 className="w-4 h-4 text-blue-500 fill-white" />
             )}
           </div>
-
-          {/* Ratings */}
           <div className="flex items-center gap-2 mb-3">
             <StarRating rating={ratingData.avg} size={13} />
             <span className="text-[12px] text-gray-400 font-bold">{ratingData.avg} ({ratingData.count})</span>
           </div>
-          
-          {/* Description */}
           <p className="text-gray-500 text-[13px] line-clamp-2 mb-6 flex-grow font-medium leading-relaxed text-left">
             {vendor.description}
           </p>
-          
-          {/* Footer: Location & WhatsApp CTA */}
           <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-auto">
             <div className="flex items-center text-gray-400 text-[10px] font-black uppercase tracking-wider">
               <MapPin className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
@@ -146,7 +118,6 @@ const VendorCard: React.FC<VendorCardProps> = ({ vendor, showFeaturedBadge }) =>
           </div>
         </div>
       </Link>
-
       <LoginModal 
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)} 
