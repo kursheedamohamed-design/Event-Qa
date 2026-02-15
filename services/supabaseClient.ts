@@ -1,14 +1,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
-// Use process.env for environment variables to resolve "Property 'env' does not exist on type 'ImportMeta'" errors.
-const supabaseUrl = (process.env.VITE_SUPABASE_URL || '').trim();
-const supabaseAnonKey = (process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+// Using NEXT_PUBLIC_ prefix as configured in Vercel settings
+const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
 
-// കീ ഉണ്ടെങ്കിൽ മാത്രം കണക്ഷൻ ഉണ്ടാക്കുക
+// Initialize the client only if keys are present
 export const supabase = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
 export const isProductionReady = !!supabase;
 
-console.log(isProductionReady ? "✅ Supabase Connected" : "⚠️ Running in Offline/Local Mode");
+console.log(isProductionReady ? "✅ Supabase Connected (Production Mode)" : "⚠️ Supabase Keys Missing (Local Mode)");
