@@ -4,11 +4,6 @@ import { User, UserRole } from '../types';
 const USER_SESSION_KEY = 'qatar_party_hub_session';
 const USERS_DB_KEY = 'qatar_party_hub_users_db';
 
-/**
- * 🛠 LOCAL DATABASE SIMULATION
- * In production, this would be replaced by Supabase or Firebase.
- */
-
 const getUsersDB = (): (User & { password?: string })[] => {
   const stored = localStorage.getItem(USERS_DB_KEY);
   return stored ? JSON.parse(stored) : [];
@@ -16,7 +11,13 @@ const getUsersDB = (): (User & { password?: string })[] => {
 
 const saveUserToDB = (user: User & { password?: string }) => {
   const users = getUsersDB();
-  localStorage.setItem(USERS_DB_KEY, JSON.stringify([...users, user]));
+  const existingIndex = users.findIndex(u => u.id === user.id);
+  if (existingIndex > -1) {
+    users[existingIndex] = user;
+    localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+  } else {
+    localStorage.setItem(USERS_DB_KEY, JSON.stringify([...users, user]));
+  }
 };
 
 export const getCurrentUser = (): User | null => {
@@ -25,7 +26,6 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const signup = async (name: string, email: string, password: string, role: UserRole): Promise<User> => {
-  // Simulate API Network Delay
   await new Promise(resolve => setTimeout(resolve, 1500));
   
   const users = getUsersDB();
@@ -39,12 +39,35 @@ export const signup = async (name: string, email: string, password: string, role
     email: email.toLowerCase(),
     role,
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-    favorites: []
+    favorites: [],
+    emailVerified: false,
+    isPendingVerification: true
   };
 
   saveUserToDB({ ...newUser, password });
-  localStorage.setItem(USER_SESSION_KEY, JSON.stringify(newUser));
+  // We don't set the session yet, user must verify first
   return newUser;
+};
+
+export const verifyEmailCode = async (email: string, code: string): Promise<User> => {
+  await new Promise(resolve => setTimeout(resolve, 1200));
+  
+  // Simulation: code '123456' always works
+  if (code !== '123456') throw new Error("തെറ്റായ വെരിഫിക്കേഷൻ കോഡ്.");
+
+  const users = getUsersDB();
+  const userIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+  
+  if (userIndex === -1) throw new Error("ഉപയോക്താവിനെ കണ്ടെത്താനായില്ല.");
+
+  users[userIndex].emailVerified = true;
+  users[userIndex].isPendingVerification = false;
+  
+  localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+  
+  const { password: _, ...userSession } = users[userIndex];
+  localStorage.setItem(USER_SESSION_KEY, JSON.stringify(userSession));
+  return userSession as User;
 };
 
 export const login = async (email: string, password: string): Promise<User> => {
@@ -62,17 +85,36 @@ export const login = async (email: string, password: string): Promise<User> => {
   return userSession as User;
 };
 
+export const updateUserProfile = async (updates: Partial<User & { password?: string }>): Promise<User> => {
+  const currentUser = getCurrentUser();
+  if (!currentUser) throw new Error("അനധികൃത പ്രവേശനം.");
+
+  const users = getUsersDB();
+  const userIndex = users.findIndex(u => u.id === currentUser.id);
+  
+  if (userIndex === -1) throw new Error("ഉപയോക്താവിനെ കണ്ടെത്താനായില്ല.");
+
+  const updatedUser = { ...users[userIndex], ...updates };
+  users[userIndex] = updatedUser;
+  
+  localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+  
+  const { password: _, ...userSession } = updatedUser;
+  localStorage.setItem(USER_SESSION_KEY, JSON.stringify(userSession));
+  return userSession as User;
+};
+
 export const loginWithGoogle = async (role: UserRole = UserRole.USER): Promise<User> => {
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // Mock Google Authentication
   const mockUser: User = {
     id: 'g' + Math.random().toString(36).substr(2, 9),
     name: role === UserRole.PARTNER ? 'Premium Partner' : 'Verified Parent',
     email: 'google-user@example.com',
     avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=google_user`,
     role: role,
-    favorites: []
+    favorites: [],
+    emailVerified: true
   };
 
   localStorage.setItem(USER_SESSION_KEY, JSON.stringify(mockUser));
@@ -96,7 +138,6 @@ export const toggleFavorite = (vendorId: string): User | null => {
 
   localStorage.setItem(USER_SESSION_KEY, JSON.stringify(user));
   
-  // Update in simulated DB
   const users = getUsersDB();
   const updatedUsers = users.map(u => u.id === user.id ? { ...u, favorites: user.favorites } : u);
   localStorage.setItem(USERS_DB_KEY, JSON.stringify(updatedUsers));

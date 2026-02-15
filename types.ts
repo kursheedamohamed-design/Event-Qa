@@ -46,6 +46,8 @@ export interface User {
   avatar?: string;
   role: UserRole;
   favorites: string[]; // Array of partner IDs
+  emailVerified: boolean;
+  isPendingVerification?: boolean;
 }
 
 export interface Review {

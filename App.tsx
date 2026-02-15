@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Home, LayoutGrid, Heart, User, LogOut, Briefcase, LogIn } from 'lucide-react';
+import { Home, LayoutGrid, Heart, User, LogOut, Briefcase, LogIn, Settings } from 'lucide-react';
 import { HomePage } from './pages/HomePage.tsx';
 import { CategoryPage } from './pages/CategoryPage.tsx';
 import { PartnerProfilePage } from './pages/PartnerProfilePage.tsx';
@@ -10,6 +10,7 @@ import { AdminPage } from './pages/AdminPage.tsx';
 import { PartnerDashboardPage } from './pages/PartnerDashboardPage.tsx';
 import { UserDashboardPage } from './pages/UserDashboardPage.tsx';
 import { ShortlistPage } from './pages/ShortlistPage.tsx';
+import { SettingsPage } from './pages/SettingsPage.tsx';
 import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { LoginModal } from './components/LoginModal.tsx';
 import { getCurrentUser, logout } from './services/authService.ts';
@@ -61,7 +62,10 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
+  useEffect(() => { 
+    window.scrollTo(0, 0); 
+    setUser(getCurrentUser());
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -73,7 +77,6 @@ const AppContent: React.FC = () => {
     const updatedUser = getCurrentUser();
     setUser(updatedUser);
     
-    // Redirect based on role
     if (role === UserRole.PARTNER) {
       navigate('/partner-dashboard');
     } else {
@@ -116,6 +119,7 @@ const AppContent: React.FC = () => {
                   <Link to={user.role === UserRole.PARTNER ? "/partner-dashboard" : "/my-profile"} className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform">
                     <img src={user.avatar} className="w-full h-full object-cover" />
                   </Link>
+                  <Link to="/settings" className="p-2 text-gray-400 hover:text-indigo-600 transition-colors"><Settings size={18} /></Link>
                   <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><LogOut size={18} /></button>
                 </div>
               )}
@@ -124,6 +128,9 @@ const AppContent: React.FC = () => {
             <div className="md:hidden">
                {!user && (
                  <button onClick={() => setIsLoginOpen(true)} className="p-2 text-indigo-600"><LogIn size={20} /></button>
+               )}
+               {user && (
+                 <Link to="/settings" className="p-2 text-indigo-600"><Settings size={20} /></Link>
                )}
             </div>
           </div>
@@ -139,6 +146,7 @@ const AppContent: React.FC = () => {
           <Route path="/partner-dashboard" element={<PartnerDashboardPage />} />
           <Route path="/my-profile" element={<UserDashboardPage />} />
           <Route path="/saved" element={<ShortlistPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>
