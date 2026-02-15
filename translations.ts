@@ -49,6 +49,11 @@ export const translations = {
     commentPlaceholder: "Share your experience with this partner...",
     loginToReview: "Please login to leave a review.",
     reviewSuccess: "Review submitted successfully!",
+    loginTitle: "Login to your account",
+    signupTitle: "Create your free account",
+    createAccount: "Create Account",
+    alreadyHaveAccount: "Already have an account? Login",
+    needAccount: "Don't have an account? Sign Up",
     categories: {
       "Baker": "Baker",
       "Photographer": "Photographer",

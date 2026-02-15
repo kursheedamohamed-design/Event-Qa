@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, ShieldCheck, LogIn, Loader2, User as UserIcon, Briefcase, Mail, Lock, UserPlus, ArrowRight, Sparkles } from 'lucide-react';
+import { X, ShieldCheck, LogIn, Loader2, User as UserIcon, Briefcase, Mail, Lock, UserPlus, ArrowRight, Sparkles, Check } from 'lucide-react';
 import { loginWithGoogle, login, signup } from '../services/authService';
 import { UserRole } from '../types';
 
@@ -35,7 +35,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
       if (mode === 'LOGIN') {
         user = await login(email, password);
       } else {
-        if (!name.trim()) throw new Error("ദയവായി പേര് നൽകുക");
+        if (!name.trim()) throw new Error("ദയവായി നിങ്ങളുടെ പൂർണ്ണരൂപത്തിലുള്ള പേര് നൽകുക");
         if (password.length < 6) throw new Error("പാസ്‌വേഡിന് കുറഞ്ഞത് 6 അക്ഷരങ്ങൾ വേണം");
         user = await signup(name, email, password, selectedRole);
       }
@@ -63,24 +63,28 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 overflow-y-auto py-10">
-      <div className="absolute inset-0 bg-indigo-950/60 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
+      <div className="absolute inset-0 bg-indigo-950/70 backdrop-blur-md animate-in fade-in duration-500" onClick={onClose} />
       
       <div className="relative w-full max-w-md bg-white rounded-[3rem] p-8 shadow-2xl border border-white/20 animate-in zoom-in-95 fade-in duration-300">
-        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 transition-all">
+        <button onClick={onClose} className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 transition-all active:scale-90">
           <X size={20} />
         </button>
 
         <div className="text-center space-y-6">
-          <div className="w-20 h-20 bg-indigo-600 rounded-[2.5rem] flex items-center justify-center text-white mx-auto shadow-xl shadow-indigo-100 transform -rotate-6 transition-transform hover:rotate-0">
-            {mode === 'LOGIN' ? <LogIn size={32} /> : <UserPlus size={32} />}
+          {/* Animated Icon Container */}
+          <div className="relative mx-auto w-20 h-20">
+            <div className="absolute inset-0 bg-indigo-600/20 rounded-[2.5rem] blur-xl animate-pulse" />
+            <div className="relative w-20 h-20 bg-indigo-600 rounded-[2.5rem] flex items-center justify-center text-white shadow-xl shadow-indigo-200 transform -rotate-6 transition-transform hover:rotate-0">
+              {mode === 'LOGIN' ? <LogIn size={32} /> : <UserPlus size={32} />}
+            </div>
           </div>
           
           <div className="space-y-1">
             <h2 className="text-2xl font-black text-gray-900 tracking-tight">
-              {mode === 'LOGIN' ? 'Welcome Back!' : 'Join Party Hub'}
+              {mode === 'LOGIN' ? 'Welcome Back!' : 'Join the Network'}
             </h2>
             <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest opacity-60">
-              {mode === 'LOGIN' ? 'ലോഗിൻ ചെയ്യുക' : 'പുതിയ അക്കൗണ്ട് തുടങ്ങുക'}
+              {mode === 'LOGIN' ? 'തുടരാൻ ലോഗിൻ ചെയ്യുക' : 'നിങ്ങളുടെ അക്കൗണ്ട് തുടങ്ങുക'}
             </p>
           </div>
 
@@ -92,23 +96,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
             )}
 
             {mode === 'SIGNUP' && (
-              <div className="space-y-4 animate-in fade-in duration-300">
-                 <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-400">
+                 {/* Role Selector Grid */}
+                 <div className="grid grid-cols-2 gap-3 mb-2">
                     <button 
                         type="button"
                         onClick={() => setSelectedRole(UserRole.USER)}
-                        className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${selectedRole === UserRole.USER ? 'border-indigo-600 bg-indigo-50/50' : 'border-gray-100 bg-gray-50'}`}
+                        className={`group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 relative overflow-hidden ${selectedRole === UserRole.USER ? 'border-indigo-600 bg-indigo-50/50 shadow-lg shadow-indigo-100' : 'border-gray-100 bg-gray-50'}`}
                     >
-                        <UserIcon size={20} className={selectedRole === UserRole.USER ? 'text-indigo-600' : 'text-gray-400'} />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">Parent</span>
+                        {selectedRole === UserRole.USER && <div className="absolute top-2 right-2 text-indigo-600"><Check size={12} strokeWidth={4} /></div>}
+                        <UserIcon size={24} className={selectedRole === UserRole.USER ? 'text-indigo-600' : 'text-gray-400'} />
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${selectedRole === UserRole.USER ? 'text-indigo-600' : 'text-gray-500'}`}>Parent</span>
                     </button>
                     <button 
                         type="button"
                         onClick={() => setSelectedRole(UserRole.PARTNER)}
-                        className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 ${selectedRole === UserRole.PARTNER ? 'border-indigo-600 bg-indigo-50/50' : 'border-gray-100 bg-gray-50'}`}
+                        className={`group p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 relative overflow-hidden ${selectedRole === UserRole.PARTNER ? 'border-indigo-600 bg-indigo-50/50 shadow-lg shadow-indigo-100' : 'border-gray-100 bg-gray-50'}`}
                     >
-                        <Briefcase size={20} className={selectedRole === UserRole.PARTNER ? 'text-indigo-600' : 'text-gray-400'} />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-900">Partner</span>
+                        {selectedRole === UserRole.PARTNER && <div className="absolute top-2 right-2 text-indigo-600"><Check size={12} strokeWidth={4} /></div>}
+                        <Briefcase size={24} className={selectedRole === UserRole.PARTNER ? 'text-indigo-600' : 'text-gray-400'} />
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${selectedRole === UserRole.PARTNER ? 'text-indigo-600' : 'text-gray-500'}`}>Partner</span>
                     </button>
                  </div>
                  
@@ -117,7 +124,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                     <input 
                       type="text" 
                       placeholder="പേര് (Full Name)" 
-                      className="w-full pl-12 pr-5 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-indigo-600 font-bold text-sm"
+                      className="w-full pl-12 pr-5 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-indigo-600 font-bold text-sm transition-all"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                     />
@@ -131,7 +138,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                   <input 
                     type="email" 
                     placeholder="ഇമെയിൽ അഡ്രസ്" 
-                    className="w-full pl-12 pr-5 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-indigo-600 font-bold text-sm"
+                    className="w-full pl-12 pr-5 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-indigo-600 font-bold text-sm transition-all"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -142,7 +149,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                   <input 
                     type="password" 
                     placeholder="പാസ്‌വേഡ്" 
-                    className="w-full pl-12 pr-5 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-indigo-600 font-bold text-sm"
+                    className="w-full pl-12 pr-5 py-4 bg-gray-50 rounded-2xl border border-gray-100 outline-none focus:ring-2 focus:ring-indigo-600 font-bold text-sm transition-all"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -153,14 +160,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
             <button 
               type="submit"
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black transition-all active:scale-95 shadow-xl shadow-indigo-100 disabled:bg-gray-400"
+              className="group w-full flex items-center justify-center gap-3 bg-indigo-600 text-white py-5 rounded-2xl font-black transition-all active:scale-95 shadow-xl shadow-indigo-100 disabled:bg-gray-400 overflow-hidden relative"
             >
+              <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500" />
               {isLoading ? (
                 <Loader2 className="animate-spin" />
               ) : (
                 <>
                   <span className="text-xs tracking-widest uppercase">{mode === 'LOGIN' ? 'Login' : 'Create Account'}</span>
-                  <ArrowRight size={18} />
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
@@ -174,7 +182,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
           <button 
             onClick={handleGoogleLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 py-4 rounded-2xl font-bold border border-gray-100 transition-all active:scale-95 shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 py-4 rounded-2xl font-bold border border-gray-100 transition-all active:scale-95 shadow-sm disabled:opacity-50 hover:bg-gray-50"
           >
             <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" className="w-5 h-5" alt="Google" />
             <span className="text-[10px] tracking-widest uppercase">Continue with Google</span>
@@ -191,7 +199,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
           <div className="flex items-center justify-center gap-2 text-[8px] text-gray-400 font-black uppercase tracking-[0.2em]">
             <ShieldCheck size={12} className="text-green-500" />
-            Secure Authentication
+            Secured by Qatar Party Hub
           </div>
         </div>
       </div>
