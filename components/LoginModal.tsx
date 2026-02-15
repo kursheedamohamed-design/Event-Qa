@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { X, ShieldCheck, LogIn, Loader2, User as UserIcon, Briefcase, Mail, Lock, UserPlus, ArrowRight, Sparkles, Check, Send } from 'lucide-react';
+import { X, ShieldCheck, LogIn, Loader2, User as UserIcon, Briefcase, Mail, Lock, UserPlus, ArrowRight, Check, Send } from 'lucide-react';
 import { loginWithGoogle, login, signup, verifyEmailCode } from '../services/authService';
 import { UserRole } from '../types';
+import { isProductionReady } from '../services/supabaseClient';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -55,10 +56,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
   };
 
   const handleGoogleLogin = async () => {
+    if (!isProductionReady) {
+      setError("Supabase കോൺഫിഗറേഷൻ അപൂർണ്ണമാണ്. Local Mode-ൽ Google Login സാധ്യമല്ല.");
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
-      // Supabase OAuth initiates a redirect, so the UI will freeze/reload
       await loginWithGoogle(selectedRole);
     } catch (error: any) {
       setError(error.message || 'Google ലോഗിൻ പരാജയപ്പെട്ടു.');
@@ -110,6 +115,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                       required
+                      autoFocus
                     />
                  </div>
                  <p className="text-[9px] text-gray-400 font-bold uppercase text-center leading-relaxed">
@@ -210,10 +216,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
               <button 
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 py-4 rounded-2xl font-bold border border-gray-100 transition-all active:scale-95 shadow-sm disabled:opacity-50 hover:bg-gray-50"
+                className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 py-4 rounded-2xl font-bold border-2 border-indigo-100 transition-all active:scale-95 shadow-lg disabled:opacity-50 hover:bg-indigo-50 hover:border-indigo-300 group"
               >
-                {isLoading ? <Loader2 size={16} className="animate-spin text-gray-400" /> : <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" className="w-5 h-5" alt="Google" />}
-                <span className="text-[10px] tracking-widest uppercase">Continue with Google</span>
+                {isLoading ? <Loader2 size={16} className="animate-spin text-gray-400" /> : <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" className="w-5 h-5 group-hover:scale-110 transition-transform" alt="Google" />}
+                <span className="text-[10px] tracking-widest uppercase font-black text-indigo-900">Continue with Google</span>
               </button>
 
               <div className="pt-4">

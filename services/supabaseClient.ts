@@ -1,19 +1,22 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
 /**
- * Environment variables access.
- * Using process.env to resolve TypeScript errors and align with the project's environment configuration.
+ * Vite environment variables access.
+ * We use a safe check to avoid TypeScript errors during build.
  */
-// @ts-ignore - process.env is provided by the environment
-const supabaseUrl = (process.env.VITE_SUPABASE_URL || '').trim();
-// @ts-ignore - process.env is provided by the environment
-const supabaseAnonKey = (process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+const env = (import.meta as any).env;
+const supabaseUrl = (env?.VITE_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (env?.VITE_SUPABASE_ANON_KEY || '').trim();
 
-// Initialize the client only if both keys are present
+// Initialize the client only if keys are present
 export const supabase = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
 
 export const isProductionReady = !!supabase;
 
-console.log(isProductionReady ? "✅ Supabase Connected" : "⚠️ Supabase Keys Missing (Running in Local/Mock Mode)");
+if (isProductionReady) {
+  console.log("✅ Supabase Production Mode Active");
+} else {
+  console.warn("⚠️ Supabase Keys Missing: Running in Mock/Local mode. Google Login will not function.");
+}
