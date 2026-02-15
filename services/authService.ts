@@ -1,8 +1,10 @@
 
 import { User, UserRole } from '../types';
+import { supabase } from './supabaseClient';
 
 const USER_SESSION_KEY = 'qatar_party_hub_session';
 const USERS_DB_KEY = 'qatar_party_hub_users_db';
+const PENDING_ROLE_KEY = 'qatar_party_hub_pending_role';
 
 const getUsersDB = (): (User & { password?: string })[] => {
   const stored = localStorage.getItem(USERS_DB_KEY);
@@ -25,6 +27,46 @@ export const getCurrentUser = (): User | null => {
   return stored ? JSON.parse(stored) : null;
 };
 
+/**
+ * Synchronizes the Supabase session with the local application session.
+ * This is called on app initialization to handle OAuth redirects.
+ */
+export const syncSupabaseSession = async (): Promise<User | null> => {
+  if (!supabase) return null;
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) return null;
+
+  const sbUser = session.user;
+  const pendingRole = (localStorage.getItem(PENDING_ROLE_KEY) as UserRole) || UserRole.USER;
+
+  // Map Supabase user to our internal User type
+  const user: User = {
+    id: sbUser.id,
+    name: sbUser.user_metadata.full_name || sbUser.email?.split('@')[0] || 'Verified User',
+    email: sbUser.email || '',
+    avatar: sbUser.user_metadata.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${sbUser.email}`,
+    role: pendingRole,
+    favorites: [],
+    emailVerified: !!sbUser.email_confirmed_at
+  };
+
+  // Check if user exists in our local "DB" to preserve favorites etc if they were already there
+  const db = getUsersDB();
+  const existing = db.find(u => u.id === user.id || u.email === user.email);
+  
+  if (existing) {
+    user.role = existing.role; // Keep existing role if they already had one
+    user.favorites = existing.favorites;
+  }
+
+  localStorage.setItem(USER_SESSION_KEY, JSON.stringify(user));
+  saveUserToDB(user);
+  localStorage.removeItem(PENDING_ROLE_KEY);
+  
+  return user;
+};
+
 export const signup = async (name: string, email: string, password: string, role: UserRole): Promise<User> => {
   await new Promise(resolve => setTimeout(resolve, 1500));
   
@@ -45,14 +87,12 @@ export const signup = async (name: string, email: string, password: string, role
   };
 
   saveUserToDB({ ...newUser, password });
-  // We don't set the session yet, user must verify first
   return newUser;
 };
 
 export const verifyEmailCode = async (email: string, code: string): Promise<User> => {
   await new Promise(resolve => setTimeout(resolve, 1200));
   
-  // Simulation: code '123456' always works
   if (code !== '123456') throw new Error("തെറ്റായ വെരിഫിക്കേഷൻ കോഡ്.");
 
   const users = getUsersDB();
@@ -104,24 +144,28 @@ export const updateUserProfile = async (updates: Partial<User & { password?: str
   return userSession as User;
 };
 
-export const loginWithGoogle = async (role: UserRole = UserRole.USER): Promise<User> => {
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const mockUser: User = {
-    id: 'g' + Math.random().toString(36).substr(2, 9),
-    name: role === UserRole.PARTNER ? 'Premium Partner' : 'Verified Parent',
-    email: 'google-user@example.com',
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=google_user`,
-    role: role,
-    favorites: [],
-    emailVerified: true
-  };
+export const loginWithGoogle = async (role: UserRole = UserRole.USER): Promise<void> => {
+  if (!supabase) {
+    throw new Error("Supabase is not configured. Please check your environment variables.");
+  }
 
-  localStorage.setItem(USER_SESSION_KEY, JSON.stringify(mockUser));
-  return mockUser;
+  // Store the intended role to set it correctly after the redirect
+  localStorage.setItem(PENDING_ROLE_KEY, role);
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + window.location.pathname,
+    }
+  });
+
+  if (error) throw error;
 };
 
-export const logout = (): void => {
+export const logout = async (): Promise<void> => {
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
   localStorage.removeItem(USER_SESSION_KEY);
 };
 

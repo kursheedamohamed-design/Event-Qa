@@ -13,7 +13,7 @@ import { ShortlistPage } from './pages/ShortlistPage.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
 import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { LoginModal } from './components/LoginModal.tsx';
-import { getCurrentUser, logout } from './services/authService.ts';
+import { getCurrentUser, logout, syncSupabaseSession } from './services/authService.ts';
 import { User as UserType, UserRole } from './types.ts';
 import { LanguageProvider, useLanguage } from './LanguageContext.tsx';
 
@@ -62,13 +62,28 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // On mount, check if we just returned from a Supabase OAuth redirect
+  useEffect(() => {
+    const checkSession = async () => {
+      const sbUser = await syncSupabaseSession();
+      if (sbUser) {
+        setUser(sbUser);
+        // Clean up URL parameters if needed (Supabase usually puts tokens in hash)
+        if (window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      }
+    };
+    checkSession();
+  }, []);
+
   useEffect(() => { 
     window.scrollTo(0, 0); 
     setUser(getCurrentUser());
   }, [location.pathname]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     setUser(null);
     navigate('/');
   };

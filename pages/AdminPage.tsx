@@ -1,27 +1,25 @@
 
-import React, { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, Eye, Trash2, ShieldCheck, Sparkles, MessageCircle, Lock, TrendingUp, Users, Clock, Rocket, ExternalLink, Database, Key, Server, Loader2 } from 'lucide-react';
-import { Vendor, VendorStatus } from '../types.ts';
-import { getVendors, updateVendorStatus, deleteVendor, toggleVendorVerification } from '../services/vendorService.ts';
+import { Partner, PartnerStatus } from '../types.ts';
+import { getPartners, updatePartnerStatus, deletePartner, togglePartnerVerification } from '../services/partnerService.ts';
 import { isProductionReady } from '../services/supabaseClient.ts';
 
 export const AdminPage: React.FC = () => {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcode, setPasscode] = useState('');
-  const [activeTab, setActiveTab] = useState<'vendors' | 'checklist'>('vendors');
+  const [activeTab, setActiveTab] = useState<'partners' | 'checklist'>('partners');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      loadVendors();
+      loadPartners();
     }
   }, [isAuthenticated]);
 
-  const loadVendors = async () => {
+  const loadPartners = async () => {
     setIsLoading(true);
-    const data = await getVendors();
-    setVendors(data.sort((a, b) => b.createdAt - a.createdAt));
+    const data = await getPartners();
+    setPartners(data.sort((a, b) => b.createdAt - a.createdAt));
     setIsLoading(false);
   };
 
@@ -34,20 +32,20 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: string, status: VendorStatus) => {
-    await updateVendorStatus(id, status);
-    loadVendors();
+  const handleStatusChange = async (id: string, status: PartnerStatus) => {
+    await updatePartnerStatus(id, status);
+    loadPartners();
   };
 
   const handleToggleVerification = async (id: string) => {
-    await toggleVendorVerification(id);
-    loadVendors();
+    await togglePartnerVerification(id);
+    loadPartners();
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this partner?')) {
-      await deleteVendor(id);
-      loadVendors();
+      await deletePartner(id);
+      loadPartners();
     }
   };
 
@@ -90,12 +88,12 @@ export const AdminPage: React.FC = () => {
         </div>
         
         <div className="flex bg-white rounded-2xl border border-gray-100 p-1 shadow-sm">
-          <button onClick={() => setActiveTab('vendors')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'vendors' ? 'bg-indigo-600 text-white' : 'text-gray-400'}`}>Partners</button>
+          <button onClick={() => setActiveTab('partners')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'partners' ? 'bg-indigo-600 text-white' : 'text-gray-400'}`}>Partners</button>
           <button onClick={() => setActiveTab('checklist')} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'checklist' ? 'bg-indigo-600 text-white' : 'text-gray-400'}`}>Launch Guide</button>
         </div>
       </header>
 
-      {activeTab === 'vendors' ? (
+      {activeTab === 'partners' ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
@@ -103,21 +101,21 @@ export const AdminPage: React.FC = () => {
                 <Users size={20} />
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Total Partners</span>
               </div>
-              <div className="text-3xl font-black text-gray-900">{vendors.length}</div>
+              <div className="text-3xl font-black text-gray-900">{partners.length}</div>
             </div>
             <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm border-l-4 border-l-green-500">
               <div className="flex items-center gap-3 text-green-600 mb-2">
                 <TrendingUp size={20} />
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Live Services</span>
               </div>
-              <div className="text-3xl font-black text-gray-900">{vendors.filter(v => v.status === VendorStatus.APPROVED).length}</div>
+              <div className="text-3xl font-black text-gray-900">{partners.filter(v => v.status === PartnerStatus.APPROVED).length}</div>
             </div>
             <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm border-l-4 border-l-amber-500">
               <div className="flex items-center gap-3 text-amber-600 mb-2">
                 <Clock size={20} />
                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Review Required</span>
               </div>
-              <div className="text-3xl font-black text-gray-900">{vendors.filter(v => v.status === VendorStatus.PENDING).length}</div>
+              <div className="text-3xl font-black text-gray-900">{partners.filter(v => v.status === PartnerStatus.PENDING).length}</div>
             </div>
           </div>
 
@@ -135,7 +133,7 @@ export const AdminPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {vendors.map((v) => (
+                  {partners.map((v) => (
                     <tr key={v.id} className="hover:bg-indigo-50/30 transition-colors group">
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
@@ -148,7 +146,7 @@ export const AdminPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-6">
                         <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                          v.status === VendorStatus.APPROVED ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          v.status === PartnerStatus.APPROVED ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                         }`}>
                           {v.status}
                         </div>
@@ -164,8 +162,8 @@ export const AdminPage: React.FC = () => {
                           </button>
                       </td>
                       <td className="px-8 py-6 text-right space-x-1">
-                        {v.status === VendorStatus.PENDING && (
-                          <button onClick={() => handleStatusChange(v.id, VendorStatus.APPROVED)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg"><CheckCircle2 size={22} /></button>
+                        {v.status === PartnerStatus.PENDING && (
+                          <button onClick={() => handleStatusChange(v.id, PartnerStatus.APPROVED)} className="p-2 text-green-600 hover:bg-green-50 rounded-lg"><CheckCircle2 size={22} /></button>
                         )}
                         <button onClick={() => handleDelete(v.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 size={20} /></button>
                       </td>
@@ -188,7 +186,6 @@ export const AdminPage: React.FC = () => {
                     3. Vercel Settings-ൽ Supabase Keys നൽകുക.
                   </p>
                </div>
-               {/* Previous Checklist remains... */}
             </div>
           </section>
         </div>
@@ -196,3 +193,5 @@ export const AdminPage: React.FC = () => {
     </div>
   );
 };
+import React, { useState, useEffect } from 'react';
+import { Lock, Server, Users, TrendingUp, Clock, CheckCircle2, Trash2, Rocket, Loader2 } from 'lucide-react';

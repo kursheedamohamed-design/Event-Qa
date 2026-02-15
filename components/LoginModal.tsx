@@ -56,13 +56,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const user = await loginWithGoogle(selectedRole);
-      onSuccess(user.role);
-      onClose();
-    } catch (error) {
-      setError('Google ലോഗിൻ പരാജയപ്പെട്ടു.');
-    } finally {
+      // Supabase OAuth initiates a redirect, so the UI will freeze/reload
+      await loginWithGoogle(selectedRole);
+    } catch (error: any) {
+      setError(error.message || 'Google ലോഗിൻ പരാജയപ്പെട്ടു.');
       setIsLoading(false);
     }
   };
@@ -213,7 +212,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onSucce
                 disabled={isLoading}
                 className="w-full flex items-center justify-center gap-3 bg-white text-gray-700 py-4 rounded-2xl font-bold border border-gray-100 transition-all active:scale-95 shadow-sm disabled:opacity-50 hover:bg-gray-50"
               >
-                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" className="w-5 h-5" alt="Google" />
+                {isLoading ? <Loader2 size={16} className="animate-spin text-gray-400" /> : <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" className="w-5 h-5" alt="Google" />}
                 <span className="text-[10px] tracking-widest uppercase">Continue with Google</span>
               </button>
 

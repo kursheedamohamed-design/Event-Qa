@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Filter, SlidersHorizontal, Search, X } from 'lucide-react';
-import { Category, Vendor, VendorStatus } from '../types.ts';
-import { getVendors } from '../services/vendorService.ts';
+import { Category, Partner, PartnerStatus } from '../types.ts';
+import { getPartners } from '../services/partnerService.ts';
 import { getVendorRating } from '../services/reviewService.ts';
 import VendorCard from '../components/VendorCard.tsx';
 import { CATEGORY_ICONS, QATAR_REGIONS } from '../constants.tsx';
@@ -12,40 +12,37 @@ export const CategoryPage: React.FC = () => {
   const { category: categoryParam } = useParams<{ category: string }>();
   const navigate = useNavigate();
   
-  const [allApprovedVendors, setAllApprovedVendors] = useState<Vendor[]>([]);
-  const [vendorRatings, setVendorRatings] = useState<Record<string, number>>({});
+  const [allApprovedPartners, setAllApprovedPartners] = useState<Partner[]>([]);
+  const [partnerRatings, setPartnerRatings] = useState<Record<string, number>>({});
   const [activeCategory, setActiveCategory] = useState<string>(categoryParam || 'All');
   const [activePrice, setActivePrice] = useState<string>('All');
   const [activeLocation, setActiveLocation] = useState<string | 'All'>('All');
   const [activeRating, setActiveRating] = useState<number | 0>(0);
 
-  // Fix: Handle async getVendors call and pre-calculate ratings
   useEffect(() => {
     const loadData = async () => {
-      const allVendors = await getVendors();
-      const approved = allVendors.filter(v => v.status === VendorStatus.APPROVED);
-      setAllApprovedVendors(approved);
+      const allPartners = await getPartners();
+      const approved = allPartners.filter(v => v.status === PartnerStatus.APPROVED);
+      setAllApprovedPartners(approved);
 
-      // Pre-calculate ratings map
       const ratingsMap: Record<string, number> = {};
       approved.forEach(v => {
         const { avg } = getVendorRating(v.id);
         ratingsMap[v.id] = avg;
       });
-      setVendorRatings(ratingsMap);
+      setPartnerRatings(ratingsMap);
     };
     loadData();
   }, []);
 
-  // Sync state if URL changes externally
   useEffect(() => {
     if (categoryParam) {
       setActiveCategory(categoryParam);
     }
   }, [categoryParam]);
 
-  const filteredVendors = useMemo(() => {
-    return allApprovedVendors.filter(v => {
+  const filteredPartners = useMemo(() => {
+    return allApprovedPartners.filter(v => {
       const matchesCategory = activeCategory === 'All' || v.category === activeCategory;
       
       let matchesPrice = true;
@@ -57,12 +54,12 @@ export const CategoryPage: React.FC = () => {
       }
 
       const matchesLocation = activeLocation === 'All' || v.location === activeLocation;
-      const avgRating = vendorRatings[v.id] || 0;
+      const avgRating = partnerRatings[v.id] || 0;
       const matchesRating = activeRating === 0 || avgRating >= activeRating;
 
       return matchesCategory && matchesPrice && matchesLocation && matchesRating;
     });
-  }, [allApprovedVendors, vendorRatings, activeCategory, activePrice, activeLocation, activeRating]);
+  }, [allApprovedPartners, partnerRatings, activeCategory, activePrice, activeLocation, activeRating]);
 
   const hasActiveFilters = activeCategory !== 'All' || activePrice !== 'All' || activeLocation !== 'All' || activeRating !== 0;
 
@@ -98,21 +95,18 @@ export const CategoryPage: React.FC = () => {
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">
               {activeCategory === 'All' ? 'Browse All' : activeCategory}
             </h1>
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{filteredVendors.length} vendors found</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">{filteredPartners.length} partners found</p>
           </div>
         </div>
       </header>
 
-      {/* FIXED: Improved Filter Bar with Robust Horizontal Scroll */}
       <section className="sticky top-[64px] z-30 bg-gray-50/90 backdrop-blur-md border-b border-gray-100 -mx-4">
         <div className="overflow-x-auto px-4 py-3 scrollbar-hide">
           <div className="inline-flex items-center gap-3 min-w-full">
-            {/* Icon Indicator */}
             <div className="flex-shrink-0 bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-center">
               <Filter size={18} className="text-indigo-500" />
             </div>
 
-            {/* Category Filter */}
             <div className="relative flex-shrink-0">
               <select 
                 className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl border text-[11px] font-black uppercase tracking-wider outline-none transition-all cursor-pointer ${
@@ -131,7 +125,6 @@ export const CategoryPage: React.FC = () => {
               <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none w-1.5 h-1.5 rounded-full ${activeCategory !== 'All' ? 'bg-white' : 'bg-gray-300'}`} />
             </div>
 
-            {/* Price Filter */}
             <div className="relative flex-shrink-0">
               <select 
                 className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl border text-[11px] font-black uppercase tracking-wider outline-none transition-all cursor-pointer ${
@@ -150,7 +143,6 @@ export const CategoryPage: React.FC = () => {
               <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none w-1.5 h-1.5 rounded-full ${activePrice !== 'All' ? 'bg-white' : 'bg-gray-300'}`} />
             </div>
 
-            {/* Location Filter */}
             <div className="relative flex-shrink-0">
               <select 
                 className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl border text-[11px] font-black uppercase tracking-wider outline-none transition-all cursor-pointer ${
@@ -169,7 +161,6 @@ export const CategoryPage: React.FC = () => {
               <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none w-1.5 h-1.5 rounded-full ${activeLocation !== 'All' ? 'bg-white' : 'bg-gray-300'}`} />
             </div>
 
-            {/* Rating Filter */}
             <div className="relative flex-shrink-0">
               <select 
                 className={`appearance-none pl-4 pr-10 py-2.5 rounded-xl border text-[11px] font-black uppercase tracking-wider outline-none transition-all cursor-pointer ${
@@ -188,7 +179,6 @@ export const CategoryPage: React.FC = () => {
               <div className={`absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none w-1.5 h-1.5 rounded-full ${activeRating > 0 ? 'bg-white' : 'bg-gray-300'}`} />
             </div>
 
-            {/* Reset Filter Button */}
             {hasActiveFilters && (
               <button 
                 onClick={resetFilters}
@@ -199,21 +189,18 @@ export const CategoryPage: React.FC = () => {
               </button>
             )}
             
-            {/* Spacing element to prevent cutting off the last item */}
             <div className="flex-shrink-0 w-4" />
           </div>
         </div>
       </section>
 
-      {/* Vendor Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
-        {filteredVendors.map(vendor => (
+        {filteredPartners.map(vendor => (
           <VendorCard key={vendor.id} vendor={vendor} />
         ))}
       </div>
 
-      {/* Empty State */}
-      {filteredVendors.length === 0 && (
+      {filteredPartners.length === 0 && (
         <div className="text-center py-20 bg-white rounded-[2.5rem] border border-gray-100 shadow-sm">
           <div className="max-w-xs mx-auto space-y-4">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">

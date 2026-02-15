@@ -3,33 +3,29 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronRight, X, Sparkles as SparklesIcon, FilterX } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Category, Vendor, VendorStatus } from '../types.ts';
+import { Category, Partner, PartnerStatus } from '../types.ts';
 import { CATEGORY_ICONS } from '../constants.tsx';
-import { getVendors } from '../services/vendorService.ts';
+import { getPartners } from '../services/partnerService.ts';
 import VendorCard from '../components/VendorCard.tsx';
 import { useLanguage } from '../LanguageContext.tsx';
 
 export const HomePage: React.FC = () => {
-  const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const { t } = useLanguage();
 
-  // Fix: Handle async getVendors call
   useEffect(() => {
     const loadData = async () => {
-      const allVendors = await getVendors();
-      setVendors(allVendors.filter(v => v.status === VendorStatus.APPROVED));
+      const allPartners = await getPartners();
+      setPartners(allPartners.filter(v => v.status === PartnerStatus.APPROVED));
     };
     loadData();
   }, []);
 
   const triggerConfetti = useCallback((isHover = false) => {
-    // Defensive check to ensure confetti function exists (prevents getBoundingClientRect errors)
     if (typeof confetti !== 'function') return;
-
     const scalar = isHover ? 0.7 : 1;
     const particleCount = isHover ? 40 : 80;
-    
     try {
       confetti({
         particleCount: particleCount,
@@ -53,11 +49,11 @@ export const HomePage: React.FC = () => {
 
   const categories = Object.values(Category);
 
-  const { featuredVendors, filteredVendors, isSearching } = useMemo(() => {
+  const { featuredPartners, filteredPartners, isSearching } = useMemo(() => {
     const searchLower = searchTerm.trim().toLowerCase();
     const isSearching = searchLower.length > 0;
 
-    const filtered = vendors.filter(v => 
+    const filtered = partners.filter(v => 
       v.name.toLowerCase().includes(searchLower) ||
       v.description.toLowerCase().includes(searchLower) ||
       v.category.toLowerCase().includes(searchLower) ||
@@ -66,11 +62,11 @@ export const HomePage: React.FC = () => {
     );
 
     return {
-      featuredVendors: isSearching ? [] : vendors.filter(v => v.featured),
-      filteredVendors: filtered,
+      featuredPartners: isSearching ? [] : partners.filter(v => v.featured),
+      filteredPartners: filtered,
       isSearching
     };
-  }, [vendors, searchTerm]);
+  }, [partners, searchTerm]);
 
   return (
     <div className="space-y-12 pb-10">
@@ -139,8 +135,8 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Vendors */}
-      {!isSearching && featuredVendors.length > 0 && (
+      {/* Featured partners */}
+      {!isSearching && featuredPartners.length > 0 && (
         <section className="relative -mx-4 px-4 py-12 md:py-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-amber-50/40 via-white to-amber-50/40 -z-10" />
           <div className="max-w-4xl mx-auto space-y-8">
@@ -158,7 +154,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 snap-x snap-mandatory">
-              {featuredVendors.map(vendor => (
+              {featuredPartners.map(vendor => (
                 <div key={vendor.id} className="w-[85vw] sm:w-[320px] md:w-[380px] flex-shrink-0 snap-center">
                   <VendorCard vendor={vendor} showFeaturedBadge />
                 </div>
@@ -168,7 +164,7 @@ export const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* Main Vendor Listing */}
+      {/* Main partner Listing */}
       <section id="results" className="scroll-mt-20">
         <div className="flex justify-between items-end mb-6">
           <div className="space-y-1">
@@ -183,9 +179,9 @@ export const HomePage: React.FC = () => {
           )}
         </div>
         
-        {filteredVendors.length > 0 ? (
+        {filteredPartners.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300">
-            {filteredVendors.map(vendor => (
+            {filteredPartners.map(vendor => (
               <VendorCard key={vendor.id} vendor={vendor} />
             ))}
           </div>
@@ -200,7 +196,7 @@ export const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* Vendor CTA */}
+      {/* partner CTA */}
       <section className="bg-indigo-600 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
         <div className="relative z-10 max-w-xl">
           <h2 className="text-3xl font-bold mb-4">{t('areYouVendor')}</h2>

@@ -86,6 +86,17 @@ export const updatePartner = async (id: string, updates: Partial<Partner>): Prom
   localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
 };
 
+export const updatePartnerStatus = async (id: string, status: PartnerStatus): Promise<void> => {
+  await updatePartner(id, { status });
+};
+
+export const togglePartnerVerification = async (id: string): Promise<void> => {
+  const partner = await getPartnerById(id);
+  if (partner) {
+    await updatePartner(id, { verified: !partner.verified });
+  }
+};
+
 export const incrementPartnerView = async (id: string): Promise<void> => {
   const partners = await getPartners();
   const partner = partners.find(p => p.id === id);
