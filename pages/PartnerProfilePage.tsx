@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Share2, User, ShieldCheck, Instagram, Facebook, Music2, Globe, Heart, List } from 'lucide-react';
+import { ArrowLeft, MapPin, Share2, User, ShieldCheck, Instagram, Facebook, Music2, Globe, Heart, List, CheckCircle2 } from 'lucide-react';
 import { Partner, PriceType } from '../types.ts';
 import { getPartnerById, incrementPartnerView, incrementPartnerWhatsAppClick } from '../services/partnerService.ts';
 import { WHATSAPP_TEMPLATE } from '../constants.tsx';
@@ -74,6 +74,16 @@ export const PartnerProfilePage: React.FC = () => {
     window.open(`https://wa.me/${partner.whatsapp}?text=${message}`, '_blank');
   };
 
+  const handleShare = () => {
+    if (navigator.share && partner) {
+      navigator.share({
+        title: `${partner.name} - Qatar Party Hub`,
+        text: partner.description,
+        url: window.location.href,
+      });
+    }
+  };
+
   if (!partner) return <div className="text-center py-20 font-bold text-gray-400">Loading profile...</div>;
 
   return (
@@ -84,15 +94,24 @@ export const PartnerProfilePage: React.FC = () => {
           <button onClick={handleFavorite} className={`p-3 shadow-sm border rounded-full transition-all active:scale-90 flex items-center justify-center ${isFavorited ? 'bg-pink-600 text-white border-pink-600' : 'text-gray-500 hover:text-pink-600 bg-white border-gray-100'}`}>
             <Heart size={20} fill={isFavorited ? "currentColor" : "none"} strokeWidth={2.5} />
           </button>
+          <button onClick={handleShare} className="p-3 text-gray-500 hover:text-indigo-600 bg-white shadow-sm border border-gray-100 rounded-full transition-all active:scale-90"><Share2 size={20} /></button>
         </div>
       </header>
 
+      {/* Profile Header Card */}
       <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center gap-5 max-w-2xl mx-auto relative overflow-hidden">
-         <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-white shadow-2xl overflow-hidden bg-gray-50 transform -rotate-3">
-           {partner.profilePhoto ? <img src={partner.profilePhoto} className="w-full h-full object-cover" alt={partner.name} /> : <div className="w-full h-full flex items-center justify-center text-indigo-200"><User size={64} /></div>}
+         <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-indigo-200 to-transparent" />
+         <div className="relative">
+            <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-4 border-white shadow-2xl overflow-hidden bg-gray-50 transform -rotate-3">
+              {partner.profilePhoto ? <img src={partner.profilePhoto} className="w-full h-full object-cover" alt={partner.name} /> : <div className="w-full h-full flex items-center justify-center text-indigo-200"><User size={64} /></div>}
+            </div>
+            {partner.verified && <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-500 rounded-2xl flex items-center justify-center text-white border-4 border-white shadow-lg"><ShieldCheck size={20} /></div>}
          </div>
           <div className="space-y-3">
-            <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight px-4">{partner.name}</h1>
+            <div className="flex items-center justify-center gap-2">
+               <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight px-4">{partner.name}</h1>
+               {partner.verified && <CheckCircle2 size={20} className="text-blue-500 fill-white" />}
+            </div>
             <div className="flex flex-col items-center gap-2">
               <div className="flex items-center gap-2 text-gray-400 font-black text-[10px] uppercase tracking-[0.2em] bg-gray-50 px-4 py-2 rounded-full inline-flex"><MapPin size={12} className="text-indigo-500" /> {partner.location}</div>
               <div className="flex items-center gap-2"><StarRating rating={ratingData.avg} size={14} /><span className="text-sm font-bold text-gray-400">{ratingData.avg} ({ratingData.count})</span></div>
@@ -101,27 +120,85 @@ export const PartnerProfilePage: React.FC = () => {
               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('startingFrom')}</span>
               <div className="flex items-center justify-center gap-3">
                  <span className="text-2xl md:text-3xl font-black text-indigo-600">{t('qar')} {partner.price}</span>
+                 <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100">{partner.priceType === PriceType.HOURLY ? t('perHour') : t('perSession')}</span>
               </div>
             </div>
           </div>
       </div>
 
+      {/* Portfolio Slider Section */}
       <section className="relative px-1">
         <div onScroll={handleScroll} className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide rounded-[2.5rem] aspect-[16/12] md:aspect-[16/10] bg-gray-100 shadow-xl border border-gray-100">
-          {partner.images.map((img, idx) => (<div key={idx} className="w-full h-full flex-shrink-0 snap-center"><img src={img} className="w-full h-full object-cover" alt={`Work ${idx + 1}`} loading="lazy" /></div>))}
+          {partner.images && partner.images.length > 0 ? (
+            partner.images.map((img, idx) => (
+              <div key={idx} className="w-full h-full flex-shrink-0 snap-center">
+                <img src={img} className="w-full h-full object-cover" alt={`Work ${idx + 1}`} loading="lazy" />
+              </div>
+            ))
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold uppercase tracking-widest text-xs">No Portfolio Images</div>
+          )}
         </div>
-        <div className="absolute bottom-6 right-6 px-4 py-2 bg-black/60 backdrop-blur-md rounded-2xl text-white text-[11px] font-black tracking-widest border border-white/10 z-10">{activeImage + 1} / {partner.images.length}</div>
+        {partner.images && partner.images.length > 0 && (
+          <div className="absolute bottom-6 right-6 px-4 py-2 bg-black/60 backdrop-blur-md rounded-2xl text-white text-[11px] font-black tracking-widest border border-white/10 z-10">
+            {activeImage + 1} / {partner.images.length}
+          </div>
+        )}
       </section>
 
+      {/* About Section */}
       <section className="space-y-4 px-4 pt-4">
         <h3 className="font-black text-gray-400 uppercase text-[10px] tracking-[0.3em] flex items-center gap-2"><div className="w-4 h-0.5 bg-indigo-500 rounded-full" /> {t('aboutService')}</h3>
         <p className="text-gray-700 leading-relaxed font-medium text-lg whitespace-pre-line">{partner.description}</p>
       </section>
 
+      {/* Price List Section */}
+      {partner.menu && partner.menu.length > 0 && (
+        <section className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm mx-1 space-y-6">
+           <h3 className="font-black text-gray-900 uppercase text-[12px] tracking-[0.3em] text-center flex items-center justify-center gap-2">
+             <List className="w-5 h-5 text-indigo-600" /> Price List
+           </h3>
+           <div className="space-y-3">
+              {partner.menu.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-5 bg-gray-50/50 rounded-[2rem] border border-gray-100 transition-all hover:bg-gray-50">
+                  <div className="font-black text-gray-700 text-sm tracking-tight">{item.name}</div>
+                  <div className="flex items-center gap-1.5">
+                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">QAR</span>
+                     <span className="text-lg font-black text-indigo-600">{item.price}</span>
+                  </div>
+                </div>
+              ))}
+           </div>
+        </section>
+      )}
+
+      {/* Add-ons Section */}
+      {partner.addOns && partner.addOns.length > 0 && (
+        <section className="bg-white p-8 rounded-[3rem] border border-gray-100 shadow-sm space-y-6 mx-1">
+          <h3 className="font-black text-gray-900 uppercase text-[12px] tracking-[0.3em] text-center opacity-80">{t('optionalExtras')}</h3>
+          <div className="space-y-3">
+            {partner.addOns.map((addon, idx) => (
+              <div key={idx} className="flex items-center justify-between p-5 bg-white border border-gray-50 rounded-[2rem] shadow-sm">
+                <span className="font-bold text-gray-700 text-sm">{addon.name}</span>
+                <div className="flex items-center gap-1.5">
+                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">{t('qar')}</span>
+                   <span className="text-lg font-black text-indigo-600">{addon.price}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="px-1"><ReviewSection vendorId={partner.id} onReviewAdded={() => setRatingData(getVendorRating(partner.id))} /></section>
+
+      {/* Floating CTA */}
       <div className="fixed bottom-[80px] md:bottom-8 inset-x-0 px-6 z-40">
-        <button onClick={handleWhatsApp} className="w-full max-w-xl mx-auto flex items-center justify-center gap-3 bg-[#16a34a] text-white px-8 py-6 rounded-[2rem] font-black text-xl shadow-2xl hover:bg-[#15803d] transition-all">
-          <WhatsAppIcon className="w-8 h-8" /> {t('bookNow')}
-        </button>
+        <div className="max-w-xl mx-auto flex justify-center">
+           <button onClick={handleWhatsApp} className="w-full flex items-center justify-center gap-3 bg-[#16a34a] text-white px-8 py-6 rounded-[2rem] font-black text-xl shadow-2xl hover:bg-[#15803d] transition-all group overflow-hidden relative">
+             <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" /><WhatsAppIcon className="w-8 h-8" /> {t('bookNow')}
+           </button>
+        </div>
       </div>
       <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} onSuccess={() => setUser(getCurrentUser())} />
     </div>

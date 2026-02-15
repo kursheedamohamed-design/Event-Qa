@@ -2,6 +2,7 @@
 import { Vendor, VendorStatus } from '../types';
 import { MOCK_VENDORS } from '../data/mockData';
 import { supabase } from './supabaseClient.ts';
+import { getCurrentUser } from './authService.ts';
 
 const STORAGE_KEY = 'qatar_party_hub_vendors';
 
@@ -40,9 +41,12 @@ export const getVendorById = async (id: string): Promise<Vendor | null> => {
   return vendors.find(v => v.id === id) || null;
 };
 
-export const saveVendor = async (vendor: Omit<Vendor, 'id' | 'status' | 'createdAt'>): Promise<Vendor | null> => {
+// Fix: Omit ownerId from parameters as it is handled internally via session or fallback
+export const saveVendor = async (vendor: Omit<Vendor, 'id' | 'status' | 'createdAt' | 'ownerId'>): Promise<Vendor | null> => {
+  const user = getCurrentUser();
   const newVendor: Vendor = {
     ...vendor,
+    ownerId: user?.id || 'system',
     id: Math.random().toString(36).substr(2, 9),
     status: VendorStatus.PENDING,
     createdAt: Date.now(),
