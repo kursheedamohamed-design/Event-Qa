@@ -1,18 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, LayoutGrid, Heart, User, LogOut } from 'lucide-react';
+import { HashRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, LayoutGrid, Heart, User, LogOut, Briefcase, LogIn } from 'lucide-react';
 import { HomePage } from './pages/HomePage.tsx';
 import { CategoryPage } from './pages/CategoryPage.tsx';
 import { PartnerProfilePage } from './pages/PartnerProfilePage.tsx';
 import { PartnerFormPage } from './pages/PartnerFormPage.tsx';
 import { AdminPage } from './pages/AdminPage.tsx';
 import { PartnerDashboardPage } from './pages/PartnerDashboardPage.tsx';
+import { UserDashboardPage } from './pages/UserDashboardPage.tsx';
 import { ShortlistPage } from './pages/ShortlistPage.tsx';
 import { InstallPrompt } from './components/InstallPrompt.tsx';
 import { LoginModal } from './components/LoginModal.tsx';
 import { getCurrentUser, logout } from './services/authService.ts';
-import { User as UserType } from './types.ts';
+import { User as UserType, UserRole } from './types.ts';
 import { LanguageProvider, useLanguage } from './LanguageContext.tsx';
 
 const BottomNav: React.FC<{ user: UserType | null }> = ({ user }) => {
@@ -20,11 +21,21 @@ const BottomNav: React.FC<{ user: UserType | null }> = ({ user }) => {
   const pathname = location.pathname;
   const { t } = useLanguage();
 
+  const isPartner = user?.role === UserRole.PARTNER;
+
   const navItems = [
     { label: t('home'), icon: Home, path: '/' },
     { label: t('browse'), icon: LayoutGrid, path: '/category/All' },
-    { label: t('saved'), icon: Heart, path: '/saved' },
-    { label: t('portal'), icon: User, path: user ? '/partner-dashboard' : '/list-service' },
+    { 
+      label: isPartner ? 'Portal' : 'Saved', 
+      icon: isPartner ? Briefcase : Heart, 
+      path: isPartner ? '/partner-dashboard' : '/saved' 
+    },
+    { 
+      label: 'Me', 
+      icon: User, 
+      path: user ? (isPartner ? '/partner-dashboard' : '/my-profile') : '/list-service' 
+    },
   ];
 
   return (
@@ -44,24 +55,40 @@ const BottomNav: React.FC<{ user: UserType | null }> = ({ user }) => {
 };
 
 const AppContent: React.FC = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [user, setUser] = useState<UserType | null>(getCurrentUser());
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { t } = useLanguage();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
     setUser(null);
-    window.location.href = '#/';
+    navigate('/');
+  };
+
+  const handleLoginSuccess = (role: UserRole) => {
+    const updatedUser = getCurrentUser();
+    setUser(updatedUser);
+    
+    // Redirect based on role
+    if (role === UserRole.PARTNER) {
+      navigate('/partner-dashboard');
+    } else {
+      navigate('/my-profile');
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-left">
       <InstallPrompt />
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} onSuccess={() => setUser(getCurrentUser())} />
+      <LoginModal 
+        isOpen={isLoginOpen} 
+        onClose={() => setIsLoginOpen(false)} 
+        onSuccess={handleLoginSuccess} 
+      />
       
       <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -73,16 +100,31 @@ const AppContent: React.FC = () => {
           <div className="flex items-center gap-4">
             <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
               <Link to="/" className="hover:text-indigo-600">{t('home')}</Link>
-              <Link to="/saved" className="hover:text-indigo-600">{t('saved')}</Link>
-              <Link to={user ? "/partner-dashboard" : "/list-service"} className="hover:text-indigo-600 font-bold text-indigo-600">{t('partnerPortal')}</Link>
+              {user?.role === UserRole.PARTNER ? (
+                <Link to="/partner-dashboard" className="hover:text-indigo-600 font-bold text-indigo-600">Partner Portal</Link>
+              ) : (
+                <>
+                  <Link to="/saved" className="hover:text-indigo-600">{t('saved')}</Link>
+                  {!user && <Link to="/list-service" className="hover:text-indigo-600 font-bold text-indigo-600">List Your Service</Link>}
+                </>
+              )}
+              
               {!user ? (
-                <button onClick={() => setIsLoginOpen(true)} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold tracking-tight">{t('parentLogin')}</button>
+                <button onClick={() => setIsLoginOpen(true)} className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-bold tracking-tight">Login</button>
               ) : (
                 <div className="flex items-center gap-4 bg-gray-50 pl-4 pr-2 py-1.5 rounded-2xl border border-gray-100">
-                  <div className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white shadow-sm"><img src={user.avatar} className="w-full h-full object-cover" /></div>
+                  <Link to={user.role === UserRole.PARTNER ? "/partner-dashboard" : "/my-profile"} className="w-9 h-9 rounded-xl overflow-hidden border-2 border-white shadow-sm hover:scale-105 transition-transform">
+                    <img src={user.avatar} className="w-full h-full object-cover" />
+                  </Link>
                   <button onClick={handleLogout} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><LogOut size={18} /></button>
                 </div>
               )}
+            </div>
+            
+            <div className="md:hidden">
+               {!user && (
+                 <button onClick={() => setIsLoginOpen(true)} className="p-2 text-indigo-600"><LogIn size={20} /></button>
+               )}
             </div>
           </div>
         </div>
@@ -95,8 +137,9 @@ const AppContent: React.FC = () => {
           <Route path="/partner/:id" element={<PartnerProfilePage />} />
           <Route path="/list-service" element={<PartnerFormPage />} />
           <Route path="/partner-dashboard" element={<PartnerDashboardPage />} />
+          <Route path="/my-profile" element={<UserDashboardPage />} />
           <Route path="/saved" element={<ShortlistPage />} />
-          <Route path="/admin" element={isAdmin ? <AdminPage /> : <HomePage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </main>
       <BottomNav user={user} />

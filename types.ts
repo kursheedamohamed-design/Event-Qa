@@ -1,5 +1,4 @@
 
-
 export enum Category {
   HOME_BAKER = 'Baker',
   PHOTOGRAPHER = 'Photographer',
@@ -22,7 +21,11 @@ export enum PartnerStatus {
   HIDDEN = 'Hidden'
 }
 
-// Fix: Export alias for PartnerStatus to resolve VendorStatus import errors
+export enum UserRole {
+  USER = 'USER',     // For Parents / Event Planners
+  PARTNER = 'PARTNER' // For Business Owners
+}
+
 export { PartnerStatus as VendorStatus };
 
 export interface MenuItem {
@@ -41,8 +44,8 @@ export interface User {
   name: string;
   email: string;
   avatar?: string;
+  role: UserRole;
   favorites: string[]; // Array of partner IDs
-  isPartner?: boolean;
 }
 
 export interface Review {
@@ -56,7 +59,7 @@ export interface Review {
 
 export interface Partner {
   id: string;
-  ownerId: string; // Linking to the User ID who created it
+  ownerId: string;
   name: string;
   category: Category;
   description: string;
@@ -86,5 +89,4 @@ export interface Partner {
   profileViews?: number;
 }
 
-// Fix: Define Vendor as an alias for Partner to resolve Vendor type import errors
 export type Vendor = Partner;
